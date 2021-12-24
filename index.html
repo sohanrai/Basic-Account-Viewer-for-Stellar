@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="styles/style.css" rel="stylesheet">
+
+    <title>Account Viewer</title>
+</head>
+
+<body>
+    <br>
+    <div class="heading">
+        <h2>Stellar Account Viewer</h2>
+    </div>
+    <br>
+    <br>
+    <div id='login_buttons'><button id="albedo" type="button" class="btn btn-light wallet-buttons">Albedo</button>
+        <br>
+        <br>
+        <a
+        href="https://rabet.io"> <button type="button" id="rabetButton" class="btn btn-light wallet-buttons" disabled>Install Rabet</button></a>
+        <br>
+        <br>
+        <a href="https://rabet.io"><button type="button" id="freighterButton"
+                class="btn btn-light wallet-buttons" disabled>Install Freighter</button></a>
+    </div>
+
+    <div id="accountDetails"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-sdk/9.1.0/stellar-sdk.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-freighter-api/1.1.2/index.min.js"></script>
+    <script src="https://unpkg.com/@albedo-link/intent/lib/albedo.intent.js"></script>
+    <script>
+        window.addEventListener("load", function () {
+
+            if (window.freighterApi.isConnected()) {
+                document.getElementById('freighterButton').innerHTML = 'Freighter';
+                document.getElementById('freighterButton').parentElement.href = '#';
+                document.getElementById('freighterButton').disabled = false;
+
+            }
+
+            if (window.rabet) {
+                document.getElementById('rabetButton').innerHTML = 'Rabet';
+                document.getElementById('rabetButton').parentElement.href = '#';
+                document.getElementById('rabetButton').disabled = false;
+
+            }
+        })
+
+
+        document.getElementById('albedo').addEventListener('click', () => {
+
+            albedo.publicKey({
+            })
+
+                .then(result => {
+                    fetch('https://horizon.stellar.org/accounts/' + result.pubkey)
+                        .then(result => result.json())
+                        .then(result => {
+                            var html;
+                            document.getElementById
+                                ('login_buttons').style.visibility = 'hidden';
+
+                            html = '<table class="table"> <thead> <tr> <th scope="col">Asset Code</th> <th scope="col">Balance</th> </tr> </thead><tbody>';
+
+                            //console.log(result);
+                            result.balances.forEach((result) => {
+                                if (result.asset_code == undefined) {
+                                    result.asset_code = 'XLM';
+                                }
+                                html += '<tr><td>' + result.asset_code + '</td> <td>' + result.balance + '</td></tr>'
+                            })
+
+                            html += '</tbody></table>'
+                            document.getElementById('accountDetails').innerHTML += html;
+                        })
+
+                    fetch('https://horizon.stellar.org/accounts/' + result.pubkey + '/payments')
+
+                        .then(result => result.json())
+                        .then(result => {
+                            console.log(result);
+                            html = '<h5>Created At: ' + result._embedded.records[0].created_at + '</h5>'
+                            html += '<h5>Created By: ' + result._embedded.records[0].funder + '</h5><br>'
+                            document.getElementById('accountDetails').innerHTML += html;
+
+                        });
+
+                })
+        })
+
+
+        document.getElementById('rabetButton').addEventListener('click', () => {
+
+            rabet.connect()
+                .then(result => {
+                    fetch('https://horizon.stellar.org/accounts/' + result.publicKey)
+                        .then(result => result.json())
+                        .then(result => {
+                            var html;
+                            document.getElementById
+                                ('login_buttons').style.visibility = 'hidden';
+
+                            html = '<table class="table"> <thead> <tr> <th scope="col">Asset Code</th> <th scope="col">Balance</th> </tr> </thead><tbody>';
+
+                            //console.log(result);
+                            result.balances.forEach((result) => {
+                                if (result.asset_code == undefined) {
+                                    result.asset_code = 'XLM';
+                                }
+                                html += '<tr><td>' + result.asset_code + '</td> <td>' + result.balance + '</td></tr>'
+                            })
+
+                            html += '</tbody></table>'
+                            document.getElementById('accountDetails').innerHTML += html;
+                        })
+
+                    fetch('https://horizon.stellar.org/accounts/' + result.publicKey + '/payments')
+
+                        .then(result => result.json())
+                        .then(result => {
+                            console.log(result);
+                            html = '<h5>Created At: ' + result._embedded.records[0].created_at + '</h5>'
+                            html += '<h5>Created By: ' + result._embedded.records[0].funder + '</h5><br>'
+                            document.getElementById('accountDetails').innerHTML += html;
+
+                        });
+
+                })
+        })
+
+
+        document.getElementById('freighterButton').addEventListener('click', () => {
+            const retrievePublicKey = async () => {
+                let publicKey = "";
+                let error = "";
+
+                try {
+                    publicKey = await window.freighterApi.getPublicKey();
+                } catch (e) {
+                    error = e;
+                }
+
+                if (error) {
+                    return error;
+                }
+
+                return publicKey;
+            };
+
+            const result = retrievePublicKey()
+                .then(result => {
+                    console.log(result);
+                    fetch('https://horizon.stellar.org/accounts/' + result)
+                        .then(result => result.json())
+                        .then(result => {
+                            var html;
+                            document.getElementById
+                                ('login_buttons').style.visibility = 'hidden';
+
+                            html = '<table class="table"> <thead> <tr> <th scope="col">Asset Code</th> <th scope="col">Balance</th> </tr> </thead><tbody>';
+
+                            //console.log(result);
+                            result.balances.forEach((result) => {
+                                if (result.asset_code == undefined) {
+                                    result.asset_code = 'XLM';
+                                }
+                                html += '<tr><td>' + result.asset_code + '</td> <td>' + result.balance + '</td></tr>'
+                            })
+
+                            html += '</tbody></table>'
+                            document.getElementById('accountDetails').innerHTML += html;
+                        })
+
+                    fetch('https://horizon.stellar.org/accounts/' + result + '/payments')
+
+                        .then(result => result.json())
+                        .then(result => {
+                            console.log(result);
+                            html = '<h5>Created At: ' + result._embedded.records[0].created_at + '</h5>'
+                            html += '<h5>Created By: ' + result._embedded.records[0].funder + '</h5><br>'
+                            document.getElementById('accountDetails').innerHTML += html;
+
+                        });
+
+                })
+        })
+
+
+    </script>
+
+</body>
+
+</html>
